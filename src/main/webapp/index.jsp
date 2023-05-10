@@ -1,9 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>T-People</title>
-</head>
+<html>
 <body>
-<script>window.location.replace("/admins/login/get");</script>
+<a href="/people">Go to all people</a>
 </body>
 </html>

@@ -1,58 +1,50 @@
 package ua.pytaichuk.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ua.pytaichuk.models.Admin;
-import ua.pytaichuk.models.Group;
 import ua.pytaichuk.models.Person;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class PersonDAO {
+    private List<Person> people;
+    private static int AUTO_INCREMENT_ID = 0;
 
-    final private JdbcTemplate jdbcTemplate;
-    final private GroupDAO groupDAO;
-    private Admin admin;
-
-    @Autowired
-    public PersonDAO(JdbcTemplate jdbcTemplate, GroupDAO groupDAO) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.groupDAO = groupDAO;
+    {
+        people = new ArrayList<>();
+        people.add(new Person(AUTO_INCREMENT_ID++, "Misha"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Nikita"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Danil"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Slava"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Zhenya"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Andrei"));
+        people.add(new Person(AUTO_INCREMENT_ID++, "Artem"));
     }
 
-    public List<Person> index(Admin admin){
-        this.admin = admin;
-        return jdbcTemplate.query("SELECT * FROM person WHERE admin_id = ?", new BeanPropertyRowMapper<>(Person.class), admin.getId());
+    public List<Person> index(){
+        return people;
     }
 
     public Person show(int id){
-        return jdbcTemplate.query("SELECT person.id, name, surname, age, email, group_id, g.group_name  FROM person JOIN `groups` g on g.id = person.group_id  WHERE person.id = ?", new BeanPropertyRowMapper<>(Person.class), id)
-                .stream().findAny().orElse(null);
-    }
-
-    public List<Person> indexByGroupId(Admin admin, int id){
-        return jdbcTemplate.query("SELECT * FROM person WHERE group_id = ? AND admin_id = ?", new BeanPropertyRowMapper<>(Person.class), id, admin.getId());
+        for (Person person: people) {
+            if(person.getId() == id) return person;
+        }
+        return null;
     }
 
     public void save(Person person) {
-        jdbcTemplate.update("INSERT INTO person (name, surname, age, email, admin_id, group_id) VALUES(?, ?, ?, ?, ?, ?)", person.getName(), person.getSurname(), person.getAge(), person.getEmail(), admin.getId(), person.getGroupId());
+        person.setId(AUTO_INCREMENT_ID++);
+        people.add(person);
     }
 
     public void delete(int id) {
-        jdbcTemplate.update("DELETE FROM person WHERE id = ?", id);
+        people.removeIf(p->p.getId() == id);
     }
 
     public void edit(int id, Person person) {
+        Person toBeUpdatePerson = show(id);
 
-        jdbcTemplate.update( "UPDATE person SET name = ?, surname = ?, age = ?, email = ?, group_id = ? WHERE id = ?",
-                        person.getName().trim(),
-                        person.getSurname().trim(),
-                        person.getAge(),
-                        person.getEmail().trim(),
-                        person.getGroupId(),
-                        id);
+        toBeUpdatePerson.setName(person.getName());
     }
 }
