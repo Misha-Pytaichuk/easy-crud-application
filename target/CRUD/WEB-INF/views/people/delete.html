@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<form id="deleteForm" th:method="DELETE" th:action="@{/people/{id}(id=${person.id})}" th:object="${person}"/>
+
+
+<script type="text/javascript">
+    window.onload = function () {
+        document.getElementById("deleteForm").submit();
+    };
+</script>
+</body>
+</html>
