@@ -1,50 +1,51 @@
 package ua.pytaichuk.dao;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ua.pytaichuk.models.Admin;
 import ua.pytaichuk.models.Person;
 
-import java.util.ArrayList;
+import java.sql.*;
 import java.util.List;
 
 @Component
 public class PersonDAO {
-    private List<Person> people;
-    private static int AUTO_INCREMENT_ID = 0;
 
-    {
-        people = new ArrayList<>();
-        people.add(new Person(AUTO_INCREMENT_ID++, "Misha"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Nikita"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Danil"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Slava"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Zhenya"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Andrei"));
-        people.add(new Person(AUTO_INCREMENT_ID++, "Artem"));
+    final private JdbcTemplate jdbcTemplate;
+    private Admin admin;
+
+    @Autowired
+    public PersonDAO(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<Person> index(){
-        return people;
+    public List<Person> index(Admin admin){
+        this.admin = admin;
+        return jdbcTemplate.query("SELECT * FROM " + admin.getTable(), new BeanPropertyRowMapper<>(Person.class));
     }
 
     public Person show(int id){
-        for (Person person: people) {
-            if(person.getId() == id) return person;
-        }
-        return null;
+        return jdbcTemplate.query("SELECT * FROM " + admin.getTable() + " WHERE id = ?", new BeanPropertyRowMapper<>(Person.class), id)
+                .stream().findAny().orElse(null);
     }
 
     public void save(Person person) {
-        person.setId(AUTO_INCREMENT_ID++);
-        people.add(person);
+        jdbcTemplate.update("INSERT INTO " + admin.getTable() + " (name, surname, age, email) VALUES(?, ?, ?, ?)", person.getName(), person.getSurname(), person.getAge(), person.getEmail());
     }
 
     public void delete(int id) {
-        people.removeIf(p->p.getId() == id);
+        jdbcTemplate.update("DELETE FROM " + admin.getTable() + " WHERE id = ?", id);
     }
 
     public void edit(int id, Person person) {
-        Person toBeUpdatePerson = show(id);
 
-        toBeUpdatePerson.setName(person.getName());
+        jdbcTemplate.update( "UPDATE " + admin.getTable() + " SET name = ?, surname = ?, age = ?, email = ? WHERE id = ?",
+                        person.getName().trim(),
+                        person.getSurname().trim(),
+                        person.getAge(),
+                        person.getEmail().trim(),
+                        id);
     }
 }

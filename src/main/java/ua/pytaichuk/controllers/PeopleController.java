@@ -1,10 +1,14 @@
 package ua.pytaichuk.controllers;
 
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ua.pytaichuk.dao.PersonDAO;
+import ua.pytaichuk.models.Admin;
 import ua.pytaichuk.models.Person;
 
 @Controller
@@ -19,8 +23,9 @@ public class PeopleController {
     }
 
     @GetMapping()
-    public String index(Model model){
-        model.addAttribute("people", personDAO.index());
+    public String index(Model model, HttpSession session){
+        Admin admin = (Admin) session.getAttribute("admin");
+        model.addAttribute("people", personDAO.index(admin));
         return "people/index";
     }
 
@@ -37,7 +42,9 @@ public class PeopleController {
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("person") Person person){
+    public String create(@ModelAttribute("person") @Valid Person person,
+                         BindingResult bindingResult){
+        if(bindingResult.hasErrors()) return "people/new";
         personDAO.save(person);
         return "redirect:/people";
     }
@@ -49,7 +56,9 @@ public class PeopleController {
     }
 
     @PatchMapping("/{id}")
-    public String edit(@PathVariable("id") int id, @ModelAttribute("person") Person person){
+    public String edit(@PathVariable("id") int id, @ModelAttribute("person") @Valid Person person,
+                       BindingResult bindingResult){
+        if(bindingResult.hasErrors()) return "people/edit";
         personDAO.edit(id ,person);
         return "redirect:/people";
     }
@@ -65,5 +74,4 @@ public class PeopleController {
         personDAO.delete(id);
         return "redirect:/people";
     }
-
 }

@@ -7,7 +7,6 @@
 <body>
 <form id="deleteForm" th:method="DELETE" th:action="@{/people/{id}(id=${person.id})}" th:object="${person}"/>
 
-
 <script type="text/javascript">
     window.onload = function () {
         document.getElementById("deleteForm").submit();

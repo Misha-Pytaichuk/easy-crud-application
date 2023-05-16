@@ -9,6 +9,9 @@
 </head>
 <body>
 <div class="container">
+    <div class="text-end">
+        <a href="/admins/login/get" class="link-dark">LogOut</a>
+    </div>
     <h1 class="text-center">ALL PEOPLE</h1>
     <table class="table table-bordered">
         <thead>
@@ -19,7 +22,7 @@
         </thead>
         <tbody>
         <tr th:each="person: ${people}">
-            <td><a th:href="@{/people/{id}(id=${person.id})}" th:text="${person.name}">user</a></td>
+            <td><a th:href="@{/people/{id}(id=${person.id})}" th:text="${person.name + ' ' + person.surname}">user</a></td>
             <td class="text-center">
                 <a th:href="@{/people/{id}/edit(id=${person.id})}" class="btn btn-primary btn-sm">Edit</a>
                 <a th:href="@{/people/{id}/delete(id=${person.getId()})}" class="btn btn-danger btn-sm">Delete</a>
@@ -27,7 +30,6 @@
         </tr>
         </tbody>
     </table>
-
     <a href="/people/new" class="btn btn-success">Add person</a>
 </div>
 </body>
