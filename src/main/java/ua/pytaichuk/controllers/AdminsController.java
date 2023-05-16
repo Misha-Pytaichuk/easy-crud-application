@@ -12,19 +12,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ua.pytaichuk.dao.AdminDAO;
 import ua.pytaichuk.models.Admin;
-import ua.pytaichuk.util.AdminRegValidator;
 
 @Controller
 @RequestMapping("/admins")
 public class AdminsController{
 
     private final AdminDAO adminDAO;
-    final private AdminRegValidator adminRegValidator;
 
     @Autowired
-    public AdminsController(AdminDAO adminDAO, AdminRegValidator adminRegValidator) {
+    public AdminsController(AdminDAO adminDAO) {
         this.adminDAO = adminDAO;
-        this.adminRegValidator = adminRegValidator;
     }
 
     @GetMapping("/new")
@@ -36,13 +33,10 @@ public class AdminsController{
     @PostMapping()
     public String create(@ModelAttribute("admin") @Valid Admin admin,
                          BindingResult bindingResult, HttpSession session){
-        adminRegValidator.validate(admin, bindingResult);
         if(bindingResult.hasErrors()) return "admins/new";
-
         adminDAO.save(admin);
-
         session.setAttribute("admin", admin);
-        return "redirect:/people?indexGroupId=0";
+        return "redirect:/people";
     }
 
     @GetMapping("/login/get")
@@ -54,13 +48,10 @@ public class AdminsController{
     @PostMapping("/login")
     public String login(@ModelAttribute("admin") @Valid Admin admin,
                          BindingResult bindingResult, HttpSession session){
-        if (bindingResult.hasErrors()) {
-            return "admins/login";
-        }
-
+        if(bindingResult.hasErrors()) return "admins/login";
         admin = adminDAO.login(admin);
         admin.setPassword(null);
         session.setAttribute("admin", admin);
-        return "redirect:/people?indexGroupId=0";
+        return "redirect:/people";
     }
 }

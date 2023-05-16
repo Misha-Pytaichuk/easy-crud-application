@@ -1,5 +1,5 @@
 <html>
 <body>
-<a href="/people">Go to all people</a>
+<script>window.location.replace("/admins/login/get");</script>
 </body>
 </html>

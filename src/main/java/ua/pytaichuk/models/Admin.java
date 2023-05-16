@@ -7,22 +7,25 @@ import jakarta.validation.constraints.Size;
 public class Admin {
 
     private int id;
-    @NotBlank(message = "The field should not be empty")
+    @NotBlank
     @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Only alphanumeric characters allowed")
-    @Size(min = 4, message = "Size of login should be greater than 4")
     private String login;
 
-    @NotBlank(message = "The field should not be empty")
+    @NotBlank
     @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Only alphanumeric characters allowed")
-    @Size(min = 6, message = "Size of the password should be greater than 6")
+    @Size(min = 6)
     private String password;
+
+    private String table;
+
 
     public Admin(){}
 
-    public Admin(int id, String login, String password) {
+    public Admin(int id, String login, String password, String table) {
         this.id = id;
         this.login = login;
         this.password = password;
+        this.table = table;
     }
 
     public String getLogin() {
@@ -47,5 +50,13 @@ public class Admin {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public void setTable(String table) {
+        this.table = table;
     }
 }
