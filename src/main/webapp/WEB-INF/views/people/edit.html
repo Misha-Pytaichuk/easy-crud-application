@@ -24,11 +24,16 @@
             <label for="email">Email</label>
             <input type="text" class="form-control" th:field="*{email}" id="email">
             <div style="color: red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Name error</div>
+            <div>
+                <select th:field="*{groupId}" class="form-control">
+                    <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" th:selected="${person.groupId == groupItem.id}"></option>
+                </select>
+            </div>
         </div>
         <br>
         <button type="submit" class="btn btn-primary">Edit</button>
     </form>
-    <a href="/people" class="btn btn-secondary mt-3">Back</a>
+    <a th:href="@{/people(indexGroupId=${globalSelectedGroup.id})}" class="btn btn-secondary mt-3">Back</a>
 </div>
 </body>
 </html>

@@ -15,12 +15,16 @@
                 <div class="form-group">
                     <label for="login">Login</label>
                     <input type="text" th:field="*{login}" class="form-control" id="login" placeholder="Enter login">
-                    <div style="color: red" th:if="${#fields.hasErrors('login')}" th:errors="*{login}"></div>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" th:field="*{password}" class="form-control" id="password" placeholder="Enter password">
-                    <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <div th:if="${#fields.hasErrors('login') or #fields.hasErrors('password')}" class="alert alert-danger">
+                    <ul>
+                        <li th:if="${#fields.hasErrors('login')}" th:errors="*{login}">Invalid login</li>
+                        <li th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Invalid password</li>
+                    </ul>
                 </div>
                 <div class="d-flex justify-content-center">
                     <button type="submit" class="btn btn-primary mt-3">Registration</button>

@@ -1,6 +1,5 @@
 package ua.pytaichuk.models;
 
-import jakarta.validation.Validation;
 import jakarta.validation.constraints.*;
 
 public class Person {
@@ -23,13 +22,18 @@ public class Person {
     @Email(message = "Email should be valid")
     private String email;
 
+    private int groupId;
+    private String groupName;
 
-    public Person(int id, String name, String surname, int age, String email) {
+
+    public Person(int id, String name, String surname, int age, String email, int groupId, String groupName) {
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.age = age;
         this.email = email;
+        this.groupId = groupId;
+        this.groupName = groupName;
     }
 
     public Person(){}
@@ -72,5 +76,21 @@ public class Person {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public int getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(int groupId) {
+        this.groupId = groupId;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 }

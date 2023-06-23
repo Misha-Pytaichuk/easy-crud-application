@@ -23,10 +23,15 @@
             <label for="email" class="form-label">Enter email</label>
             <input type="text" th:field="*{email}" class="form-control" id="email">
             <div style="color: red" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Name error</div>
+            <div>
+                <select th:field="*{groupId}" class="form-control">
+                    <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" ></option>
+                </select>
+            </div>
         </div>
         <button type="submit" class="btn btn-primary">Create</button>
     </form>
-    <a href="/people" class="btn btn-secondary mt-3">Back</a>
+    <a th:href="@{/people(indexGroupId=${globalSelectedGroup.id})}" class="btn btn-secondary mt-3">Back</a>
 </div>
 </body>
 </html>

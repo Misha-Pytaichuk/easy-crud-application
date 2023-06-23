@@ -29,8 +29,14 @@
                 <p class="form-control-static" th:text="${person.email}">VALUE</p>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold;">Group:</label>
+                <p class="form-control-static" th:text="${person.groupName}">VALUE</p>
+            </div>
+        </div>
     </div>
-    <a href="/people" class="btn btn-secondary mt-3">Back</a>
+    <a th:href="@{/people}" class="btn btn-secondary mt-3">Back</a>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
