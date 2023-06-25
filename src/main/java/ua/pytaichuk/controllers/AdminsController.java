@@ -10,20 +10,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ua.pytaichuk.dao.AdminDAO;
 import ua.pytaichuk.models.Admin;
+import ua.pytaichuk.services.AdminsService;
 import ua.pytaichuk.util.AdminRegValidator;
 
 @Controller
 @RequestMapping("/admins")
 public class AdminsController{
 
-    private final AdminDAO adminDAO;
+    private final AdminsService adminsService;
     final private AdminRegValidator adminRegValidator;
 
     @Autowired
-    public AdminsController(AdminDAO adminDAO, AdminRegValidator adminRegValidator) {
-        this.adminDAO = adminDAO;
+    public AdminsController(AdminsService adminsService, AdminRegValidator adminRegValidator) {
+        this.adminsService = adminsService;
         this.adminRegValidator = adminRegValidator;
     }
 
@@ -39,7 +39,7 @@ public class AdminsController{
         adminRegValidator.validate(admin, bindingResult);
         if(bindingResult.hasErrors()) return "admins/new";
 
-        adminDAO.save(admin);
+        adminsService.save(admin);
 
         session.setAttribute("admin", admin);
         return "redirect:/people?indexGroupId=0";
@@ -58,7 +58,7 @@ public class AdminsController{
             return "admins/login";
         }
 
-        admin = adminDAO.login(admin);
+        admin = adminsService.findAdminByLoginAndPassword(admin);
         admin.setPassword(null);
         session.setAttribute("admin", admin);
         return "redirect:/people?indexGroupId=0";

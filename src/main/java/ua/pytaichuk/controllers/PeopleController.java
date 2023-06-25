@@ -7,11 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ua.pytaichuk.dao.GroupDAO;
-import ua.pytaichuk.dao.PersonDAO;
 import ua.pytaichuk.models.Admin;
 import ua.pytaichuk.models.Group;
 import ua.pytaichuk.models.Person;
+import ua.pytaichuk.services.GroupsService;
+import ua.pytaichuk.services.PeopleService;
 
 import java.util.List;
 
@@ -19,13 +19,15 @@ import java.util.List;
 @RequestMapping("/people")
 public class PeopleController {
 
-    private final PersonDAO personDAO;
-    private final GroupDAO groupDAO;
+    private final PeopleService peopleService;
+    private final GroupsService groupsService;
     private Group selectedGroup;
+    private Admin admin;
+
     @Autowired
-    public PeopleController(PersonDAO personDAO, GroupDAO groupDAO) {
-        this.personDAO = personDAO;
-        this.groupDAO = groupDAO;
+    public PeopleController(PeopleService peopleService, GroupsService groupsService) {
+        this.peopleService = peopleService;
+        this.groupsService = groupsService;
     }
 
     @GetMapping()
@@ -33,27 +35,27 @@ public class PeopleController {
                         @ModelAttribute("group") Group group,
                         HttpSession session,
                         @RequestParam(value = "indexGroupId", required = false) Integer selectedGroupId){
-        Admin admin = (Admin) session.getAttribute("admin");
+        admin = (Admin) session.getAttribute("admin");
         List<Person> people;
-        List<Group> groups = groupDAO.show();
+        List<Group> groups = groupsService.findAll();
 
             if(selectedGroupId != null) {
                 if(selectedGroupId == 0){
-                    people = personDAO.index(admin);
+                    people = peopleService.findAllByAdminId(admin.getId());
                 } else {
-                    selectedGroup = groupDAO.show(selectedGroupId);
+                    selectedGroup = groupsService.findById(selectedGroupId);
                     group = selectedGroup;
                     System.out.println("selectedGroupId " + selectedGroupId);
                     System.out.println("group " + group.getId());
                 }
             }
             if(group != null){
-                people = group.getId() == 0 ? personDAO.index(admin) : personDAO.indexByGroupId(admin, group.getId());
+                people = group.getId() == 0 ? peopleService.findAllByAdminId(admin.getId()) : peopleService.findAllByGroupIdAndAdminId(group.getId(), admin.getId());
                 selectedGroup = group;
                 System.out.println("selectedGroup.getId() " + selectedGroup.getId());
             }
             else
-                people = personDAO.index(admin);
+                people = peopleService.findAllByAdminId(admin.getId());
 
         model.addAttribute("groups", groups);
         model.addAttribute("people", people);
@@ -63,7 +65,9 @@ public class PeopleController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable("id") int id, Model model){
-        model.addAttribute("person", personDAO.show(id));
+        Person person =  peopleService.findById(id);
+        model.addAttribute("person", person);
+        model.addAttribute("group", person.getGroup());
         model.addAttribute("globalSelectedGroup", selectedGroup);
         return "people/show";
     }
@@ -72,7 +76,7 @@ public class PeopleController {
     public String newPerson(Model model, @ModelAttribute("group") Group group){
         model.addAttribute("person", new Person());
         model.addAttribute("globalSelectedGroup", selectedGroup);
-        model.addAttribute("groups", groupDAO.show());
+        model.addAttribute("groups", groupsService.findAll());
 
         return "people/new";
     }
@@ -81,15 +85,17 @@ public class PeopleController {
     public String create(@ModelAttribute("person") @Valid Person person,
                          BindingResult bindingResult){
         if(bindingResult.hasErrors()) return "people/new";
-        personDAO.save(person);
+        peopleService.save(person, admin);
         return "redirect:/people?indexGroupId=" + selectedGroup.getId();
     }
 
     @GetMapping("/{id}/edit")
     public String editPerson(@PathVariable("id") int id, Model model, @ModelAttribute("group") Group group){
-        model.addAttribute("person", personDAO.show(id));
+        Person person =  peopleService.findById(id);
+
+        model.addAttribute("person", person);
         model.addAttribute("globalSelectedGroup", selectedGroup);
-        model.addAttribute("groups", groupDAO.show());
+        model.addAttribute("groups", groupsService.findAll());
         return "people/edit";
     }
 
@@ -97,19 +103,23 @@ public class PeopleController {
     public String edit(@PathVariable("id") int id, @ModelAttribute("person") @Valid Person person,
                        BindingResult bindingResult){
         if(bindingResult.hasErrors()) return "people/edit";
-        personDAO.edit(id ,person);
+
+        peopleService.update(person);
         return "redirect:/people?indexGroupId=" + selectedGroup.getId();
     }
 
     @GetMapping("/{id}/delete")
     public String deletePerson(@PathVariable("id") int id, Model model){
-        model.addAttribute("person", personDAO.show(id));
+        Person person = peopleService.findById(id);
+        System.out.println(person.getId());
+        model.addAttribute("person", person);
         return "people/delete";
     }
 
     @DeleteMapping("/{id}")
     public String delete(@PathVariable("id") int id){
-        personDAO.delete(id);
+        System.out.println(id);
+        peopleService.delete(id);
         return "redirect:/people?indexGroupId=" + selectedGroup.getId();
     }
 }
