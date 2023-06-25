@@ -35,8 +35,8 @@ public class Admin {
 
     public Admin(){}
 
-    public Admin(int id, String login, String password) {
-        this.id = id;
+
+    public Admin(String login, String password) {
         this.login = login;
         this.password = password;
     }
