@@ -10,7 +10,15 @@
         .form-group {
             margin-bottom: 0;
         }
+        .fixed-pagination {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+        }
     </style>
+
 </head>
 <body>
 <div class="container">
@@ -20,16 +28,19 @@
     <h1 class="text-center">ALL PEOPLE</h1>
     <div class="row">
         <div class="col-md-6">
-            <form th:method="GET" th:action="@{/people(indexGroupId=${globalSelectedGroup.id})}">
+            <form th:method="GET" th:action="@{/people}">
                 <div class="form-group">
                     <div class="row">
-                        <div class="col-md-9">
-                            <select th:object="${group}" th:field="*{id}" class="form-control">
-                                <option value="0" th:selected="${globalSelectedGroup.id == 0}">All groups</option>
-                                <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" th:selected="${globalSelectedGroup.id == groupItem.id}"></option>
+                        <div class="col-md-7">
+                            <select name="selectedGroupId" class="form-control">
+                                <option value="0" th:selected="${globalSelectedGroup == 0}">All groups</option>
+                                <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" th:selected="${globalSelectedGroup == groupItem.id}"></option>
                             </select>
                         </div>
                         <div class="col-md-3">
+                            <input type="text" name="search" class="form-control" placeholder="Search by surname">
+                        </div>
+                        <div class="col-md-2">
                             <input type="submit" value="Search" class="btn btn-primary w-100">
                         </div>
                     </div>
@@ -57,6 +68,24 @@
         </tr>
         </tbody>
     </table>
+
+    <nav aria-label="Page navigation" class="fixed-pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${page == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/people(search=${searchForSurname}, page=${page != null && page > 0 ? page - 1 : 0}, count=${count}, totalCount=${totalCount}, selectedGroupId=${globalSelectedGroup})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, (totalCount / count))}" th:classappend="${pageNumber == page ? 'active' : ''}">
+                <a class="page-link" th:href="@{/people(search=${searchForSurname}, page=${pageNumber}, count=${count}, totalCount=${totalCount}, selectedGroupId=${globalSelectedGroup})}" th:text="${pageNumber + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${page == (totalCount / count) ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/people(search=${searchForSurname}, page=${page != null ? page + 1 : 1}, count=${count}, totalCount=${totalCount}, selectedGroupId=${globalSelectedGroup})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>
 </body>
 </html>

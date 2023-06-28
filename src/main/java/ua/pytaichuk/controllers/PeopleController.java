@@ -13,15 +13,16 @@ import ua.pytaichuk.models.Person;
 import ua.pytaichuk.services.GroupsService;
 import ua.pytaichuk.services.PeopleService;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
 @RequestMapping("/people")
 public class PeopleController {
-
     private final PeopleService peopleService;
     private final GroupsService groupsService;
-    private Group selectedGroup;
+    private int globalSelectedId;
     private Admin admin;
 
     @Autowired
@@ -32,80 +33,109 @@ public class PeopleController {
 
     @GetMapping()
     public String index(Model model,
-                        @ModelAttribute("group") Group group,
-                        HttpSession session,
-                        @RequestParam(value = "indexGroupId", required = false) Integer selectedGroupId){
+                        @ModelAttribute("group") Group group, HttpSession session,
+                        @RequestParam(value = "search", required = false) String searchForSurname,
+                        @RequestParam(value = "page", required = false) Integer page,
+                        @RequestParam(value = "count", required = false) Integer count,
+                        @RequestParam(value = "totalCount", required = false) Integer totalCount,
+                        @RequestParam(value = "selectedGroupId", required = false) Integer selectedGroupId
+    ){
         admin = (Admin) session.getAttribute("admin");
+        System.out.println(searchForSurname);
+        System.out.println("page " + page);
+        System.out.println("totalCount " + totalCount);
+        System.out.println("group " + globalSelectedId);
+
         List<Person> people;
         List<Group> groups = groupsService.findAll();
 
-            if(selectedGroupId != null) {
-                if(selectedGroupId == 0){
-                    people = peopleService.findAllByAdminId(admin.getId());
-                } else {
-                    selectedGroup = groupsService.findById(selectedGroupId);
-                    group = selectedGroup;
-                    System.out.println("selectedGroupId " + selectedGroupId);
-                    System.out.println("group " + group.getId());
+            if(page == null || count == null){
+                page = 0;
+                count = 10;
+            }
+                if(group != null && group.getId() != 0) {
+                    globalSelectedId = group.getId();
+                    people = peopleService.search(globalSelectedId, admin.getId(), searchForSurname, page, count);
+                    totalCount = peopleService.findTotalCountOfPeople(globalSelectedId, admin.getId(), searchForSurname);
                 }
-            }
-            if(group != null){
-                people = group.getId() == 0 ? peopleService.findAllByAdminId(admin.getId()) : peopleService.findAllByGroupIdAndAdminId(group.getId(), admin.getId());
-                selectedGroup = group;
-                System.out.println("selectedGroup.getId() " + selectedGroup.getId());
-            }
-            else
-                people = peopleService.findAllByAdminId(admin.getId());
+                else if(selectedGroupId != null && selectedGroupId != 0){
+                    globalSelectedId = selectedGroupId;
+                    people = peopleService.search(globalSelectedId, admin.getId(), searchForSurname, page, count);
+                    totalCount = peopleService.findTotalCountOfPeople(globalSelectedId, admin.getId(), searchForSurname);
+                } else{
+                    globalSelectedId = 0;
+                    people = peopleService.findAllByAdminIdAndSurname(admin.getId(), searchForSurname, page, count);
+                    if(searchForSurname == null || searchForSurname.isEmpty()){
+                        totalCount = peopleService.findTotalCountOfPeople();
+                    } else totalCount = people.size();
+                }
+
+        session.setAttribute("search", searchForSurname);
+        session.setAttribute("globalSelectedGroup", globalSelectedId);
+        session.setAttribute("page", page);
+        session.setAttribute("count", count);
+        session.setAttribute("totalCount", totalCount);
 
         model.addAttribute("groups", groups);
         model.addAttribute("people", people);
-        model.addAttribute("globalSelectedGroup", selectedGroup);
+        model.addAttribute("globalSelectedGroup", globalSelectedId);
+        model.addAttribute("search", searchForSurname);
+        model.addAttribute("page", page);
+        model.addAttribute("count", count);
+        model.addAttribute("totalCount", totalCount);
+
         return "people/index";
     }
 
     @GetMapping("/{id}")
-    public String show(@PathVariable("id") int id, Model model){
+    public String show(@PathVariable("id") int id, Model model, HttpSession session){
         Person person =  peopleService.findById(id);
+
+        System.out.println(sessionData(session));
+
         model.addAttribute("person", person);
         model.addAttribute("group", person.getGroup());
-        model.addAttribute("globalSelectedGroup", selectedGroup);
+        model.addAttribute("url", sessionData(session));
         return "people/show";
     }
 
     @GetMapping("/new")
-    public String newPerson(Model model, @ModelAttribute("group") Group group){
+    public String newPerson(Model model, @ModelAttribute("group") Group group, HttpSession session){
         model.addAttribute("person", new Person());
-        model.addAttribute("globalSelectedGroup", selectedGroup);
+        model.addAttribute("globalSelectedGroup", globalSelectedId);
         model.addAttribute("groups", groupsService.findAll());
+        model.addAttribute("url", sessionData(session));
 
         return "people/new";
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("person") @Valid Person person,
+    public String create(@ModelAttribute("person") @Valid Person person, HttpSession session,
                          BindingResult bindingResult){
         if(bindingResult.hasErrors()) return "people/new";
         peopleService.save(person, admin);
-        return "redirect:/people?indexGroupId=" + selectedGroup.getId();
+        return "redirect:" + sessionData(session);
     }
 
     @GetMapping("/{id}/edit")
-    public String editPerson(@PathVariable("id") int id, Model model, @ModelAttribute("group") Group group){
+    public String editPerson(@PathVariable("id") int id, Model model, @ModelAttribute("group") Group group, HttpSession session){
         Person person =  peopleService.findById(id);
 
         model.addAttribute("person", person);
-        model.addAttribute("globalSelectedGroup", selectedGroup);
+        model.addAttribute("globalSelectedGroup", globalSelectedId);
         model.addAttribute("groups", groupsService.findAll());
+        model.addAttribute("url", sessionData(session));
+
         return "people/edit";
     }
 
     @PatchMapping("/{id}")
-    public String edit(@PathVariable("id") int id, @ModelAttribute("person") @Valid Person person,
-                       BindingResult bindingResult){
+    public String edit(@ModelAttribute("person") @Valid Person person,
+                       BindingResult bindingResult, HttpSession session){
         if(bindingResult.hasErrors()) return "people/edit";
 
         peopleService.update(person);
-        return "redirect:/people?indexGroupId=" + selectedGroup.getId();
+        return "redirect:" + sessionData(session);
     }
 
     @GetMapping("/{id}/delete")
@@ -117,9 +147,20 @@ public class PeopleController {
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable("id") int id){
+    public String delete(@PathVariable("id") int id, HttpSession session){
         System.out.println(id);
         peopleService.delete(id);
-        return "redirect:/people?indexGroupId=" + selectedGroup.getId();
+        return "redirect:" + sessionData(session);
+    }
+
+    private String sessionData(HttpSession session){
+        String search = (String) session.getAttribute("search");
+        if(search == null) search = "";
+        int selected = (int) session.getAttribute("globalSelectedGroup");
+        int page = (int) session.getAttribute("page");
+        int count = (int) session.getAttribute("count");
+        int totalCount = (int) session.getAttribute("totalCount");
+
+        return "/people?search=" + search + "&page=" + page + "&count=" + count + "&totalCount=" + totalCount + "&selectedGroupId=" + selected;
     }
 }
