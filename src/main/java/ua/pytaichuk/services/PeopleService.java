@@ -2,6 +2,7 @@ package ua.pytaichuk.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.pytaichuk.models.Admin;
@@ -21,7 +22,7 @@ public class PeopleService {
     }
 
     public List<Person> findAllByAdminIdAndSurname(int id, String surname, int page, int count){
-        return surname != null ? peopleRepository.findAllByAdmin_IdAndSurnameStartingWith(id, surname, PageRequest.of(page, count)) : peopleRepository.findAllByAdmin_Id(id, PageRequest.of(page, count));
+        return surname != null ? peopleRepository.findAllByAdmin_IdAndSurnameStartingWith(id, surname, PageRequest.of(page, count, Sort.by("surname"))) : peopleRepository.findAllByAdmin_Id(id, PageRequest.of(page, count, Sort.by("surname")));
     }
 
     public Person findById(int id){
@@ -30,8 +31,9 @@ public class PeopleService {
 
     public List<Person> search(int groupId, int adminId, String surname, int page, int count)
     {
-       return surname != null ? peopleRepository.findAllByGroup_IdAndAdmin_IdAndSurnameStartingWith(groupId, adminId, surname, PageRequest.of(page, count)) : peopleRepository.findAllByGroup_IdAndAdmin_Id(groupId, adminId, PageRequest.of(page, count));
+       return surname != null ? peopleRepository.findAllByGroup_IdAndAdmin_IdAndSurnameStartingWith(groupId, adminId, surname, PageRequest.of(page, count, Sort.by("surname"))) : peopleRepository.findAllByGroup_IdAndAdmin_Id(groupId, adminId, PageRequest.of(page, count, Sort.by("surname")));
     }
+
     @Transactional
     public void save(Person person, Admin admin){
         person.setAdmin(admin);
@@ -49,8 +51,8 @@ public class PeopleService {
         peopleRepository.deleteById(id);
     }
 
-    public int findTotalCountOfPeople(){
-        return peopleRepository.findAll().size();
+    public int findTotalCountOfPeople(int id){
+        return peopleRepository.countAllByAdmin_Id(id);
     }
 
     public int findTotalCountOfPeople(int groupId, int adminId, String surname){

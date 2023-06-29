@@ -26,41 +26,63 @@
         <a href="/admins/login/get" class="link-dark">LogOut</a>
     </div>
     <h1 class="text-center">ALL PEOPLE</h1>
-    <div class="row">
-        <div class="col-md-6">
-            <form th:method="GET" th:action="@{/people}">
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col-md-7">
-                            <select name="selectedGroupId" class="form-control">
-                                <option value="0" th:selected="${globalSelectedGroup == 0}">All groups</option>
-                                <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" th:selected="${globalSelectedGroup == groupItem.id}"></option>
-                            </select>
+    <div class="col-md-6">
+        <form th:method="GET" th:action="@{/people}">
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-7">
+                        <select name="selectedGroupId" class="form-control">
+                            <option value="0" th:selected="${globalSelectedGroup == 0}">All groups</option>
+                            <option th:each="groupItem : ${groups}" th:value="${groupItem.id}" th:text="${groupItem.groupName}" th:selected="${globalSelectedGroup == groupItem.id}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search by surname">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="submit" value="Search" class="btn btn-primary w-100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="form-check-label">Sort by:</label>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sort" value="surname" id="sortSurname">
+                            <label class="form-check-label" for="sortSurname">Surname</label>
                         </div>
-                        <div class="col-md-3">
-                            <input type="text" name="search" class="form-control" placeholder="Search by surname">
-                        </div>
-                        <div class="col-md-2">
-                            <input type="submit" value="Search" class="btn btn-primary w-100">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sort" value="group" id="sortGroup">
+                            <label class="form-check-label" for="sortGroup">Group</label>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
-        <div class="col-md-6 text-end">
-            <a href="/people/new" class="btn btn-success">Add person</a>
-        </div>
+            </div>
+        </form>
     </div>
+
     <table class="table table-bordered mt-3">
         <thead>
         <tr>
-            <th class="col-9">Name</th>
+            <th class="col-6">Name</th>
+            <th class="col-3">Age</th>
             <th class="col-auto">Actions</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="person: ${people}">
-            <td><a th:href="@{/people/{id}(id=${person.id})}" th:text="${person.name + ' ' + person.surname}">user</a></td>
+            <td>
+                <a th:href="@{/people/{id}(id=${person.id})}" th:text="${person.name + ' ' + person.surname}">user</a>
+            </td>
+            <td>
+                <p th:text="${person.getAge()}"></p>
+            </td>
             <td class="text-center">
                 <a th:href="@{/people/{id}/edit(id=${person.id})}" class="btn btn-primary btn-sm">Edit</a>
                 <a th:href="@{/people/{id}/delete(id=${person.getId()})}" class="btn btn-danger btn-sm">Delete</a>
@@ -87,5 +109,51 @@
         </ul>
     </nav>
 </div>
+<script>
+    // Получаем ссылки на элементы таблицы и radio button
+    var table = document.querySelector('.table');
+    var sortSurnameRadio = document.getElementById('sortSurname');
+    var sortGroupRadio = document.getElementById('sortGroup');
+
+    // Обработчик события изменения значения radio button
+    function handleSortChange() {
+        if (sortSurnameRadio.checked) {
+            sortTableBySurname();
+        } else if (sortGroupRadio.checked) {
+            sortTableByGroup();
+        }
+    }
+
+    // Функция для сортировки таблицы по фамилии
+    function sortTableBySurname() {
+        var rows = Array.from(table.tBodies[0].rows);
+        rows.sort(function (a, b) {
+            var nameA = a.cells[0].innerText.trim().toLowerCase();
+            var nameB = b.cells[0].innerText.trim().toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        rows.forEach(function (row) {
+            table.tBodies[0].appendChild(row);
+        });
+    }
+
+    // Функция для сортировки таблицы по группе
+    function sortTableByGroup() {
+        var rows = Array.from(table.tBodies[0].rows);
+        rows.sort(function (a, b) {
+            var groupA = a.cells[2].innerText.trim().toLowerCase();
+            var groupB = b.cells[2].innerText.trim().toLowerCase();
+            return groupA.localeCompare(groupB);
+        });
+        rows.forEach(function (row) {
+            table.tBodies[0].appendChild(row);
+        });
+    }
+
+    // Добавляем обработчик события изменения значения radio button
+    sortSurnameRadio.addEventListener('change', handleSortChange);
+    sortGroupRadio.addEventListener('change', handleSortChange);
+</script>
+
 </body>
 </html>

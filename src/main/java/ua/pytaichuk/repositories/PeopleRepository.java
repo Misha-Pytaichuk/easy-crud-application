@@ -15,4 +15,6 @@ public interface PeopleRepository extends JpaRepository<Person, Integer> {
     List<Person> findAllByGroup_IdAndAdmin_IdAndSurnameStartingWith(int groupId, int adminId, String surname, PageRequest of);
     int countAllByGroup_IdAndAdmin_Id(int groupId, int adminId);
     int countAllByGroup_IdAndAdmin_IdAndNameStartingWith(int groupId, int adminId, String surname);
+
+    int countAllByAdmin_Id(int id);
 }

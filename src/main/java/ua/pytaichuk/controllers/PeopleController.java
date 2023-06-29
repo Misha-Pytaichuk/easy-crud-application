@@ -12,9 +12,6 @@ import ua.pytaichuk.models.Group;
 import ua.pytaichuk.models.Person;
 import ua.pytaichuk.services.GroupsService;
 import ua.pytaichuk.services.PeopleService;
-
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -41,10 +38,6 @@ public class PeopleController {
                         @RequestParam(value = "selectedGroupId", required = false) Integer selectedGroupId
     ){
         admin = (Admin) session.getAttribute("admin");
-        System.out.println(searchForSurname);
-        System.out.println("page " + page);
-        System.out.println("totalCount " + totalCount);
-        System.out.println("group " + globalSelectedId);
 
         List<Person> people;
         List<Group> groups = groupsService.findAll();
@@ -66,7 +59,7 @@ public class PeopleController {
                     globalSelectedId = 0;
                     people = peopleService.findAllByAdminIdAndSurname(admin.getId(), searchForSurname, page, count);
                     if(searchForSurname == null || searchForSurname.isEmpty()){
-                        totalCount = peopleService.findTotalCountOfPeople();
+                        totalCount = peopleService.findTotalCountOfPeople(admin.getId());
                     } else totalCount = people.size();
                 }
 
@@ -91,8 +84,6 @@ public class PeopleController {
     public String show(@PathVariable("id") int id, Model model, HttpSession session){
         Person person =  peopleService.findById(id);
 
-        System.out.println(sessionData(session));
-
         model.addAttribute("person", person);
         model.addAttribute("group", person.getGroup());
         model.addAttribute("url", sessionData(session));
@@ -102,7 +93,6 @@ public class PeopleController {
     @GetMapping("/new")
     public String newPerson(Model model, @ModelAttribute("group") Group group, HttpSession session){
         model.addAttribute("person", new Person());
-        model.addAttribute("globalSelectedGroup", globalSelectedId);
         model.addAttribute("groups", groupsService.findAll());
         model.addAttribute("url", sessionData(session));
 
@@ -122,7 +112,6 @@ public class PeopleController {
         Person person =  peopleService.findById(id);
 
         model.addAttribute("person", person);
-        model.addAttribute("globalSelectedGroup", globalSelectedId);
         model.addAttribute("groups", groupsService.findAll());
         model.addAttribute("url", sessionData(session));
 
